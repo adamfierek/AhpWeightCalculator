@@ -5,6 +5,8 @@ using System.Linq;
 
 CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
+var key = ConsoleKey.Y;
+
 //declare R factors
 //source: Saaty T., The Analythic Hierarchy and Analytic Network Processes for the Measurement of Intangible Criteria and for Decision-Making
 var R = new Dictionary<int, double>
@@ -26,65 +28,72 @@ var R = new Dictionary<int, double>
     {15, 1.59}
 };
 
-//Read input data
-Console.Write("1. row of comparsion matrix: ");
-var row = Console.ReadLine().Split(' ').Select(s => s.ToDouble()).ToArray();
-var m = row.Length;
-var c = new double[m, m];
-
-for (var i = 0; i < m; i++)
+while(key==ConsoleKey.Y)
 {
-    c[0, i] = row[i];
-}
+    //Read input data
+    Console.Write("1. row of comparsion matrix: ");
+    var row = Console.ReadLine().Split(' ').Select(s => s.ToDouble()).ToArray();
+    var m = row.Length;
+    var c = new double[m, m];
 
-for (var i = 1; i < m; i++)
-{
-    Console.Write($"{i + 1}. row of comparsion matrix: ");
-    row = Console.ReadLine().Split(' ').Select(s => s.ToDouble()).ToArray();
-    for (var j = 0; j < m; j++)
+    for (var i = 0; i < m; i++)
     {
-        c[i, j] = row[j];
+        c[0, i] = row[i];
     }
 
-}
-
-//computing normalized cu matrix
-var cu = new double[m, m];
-
-for (int i = 0; i < m; i++)
-{
-    for (int j = 0; j < m; j++)
+    for (var i = 1; i < m; i++)
     {
-        cu[i, j] = c[i, j] / Enumerable.Range(0, m).Select(x => c[x, j]).Sum();
+        Console.Write($"{i + 1}. row of comparsion matrix: ");
+        row = Console.ReadLine().Split(' ').Select(s => s.ToDouble()).ToArray();
+        for (var j = 0; j < m; j++)
+        {
+            c[i, j] = row[j];
+        }
+
     }
+
+    //computing normalized cu matrix
+    var cu = new double[m, m];
+
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < m; j++)
+        {
+            cu[i, j] = c[i, j] / Enumerable.Range(0, m).Select(x => c[x, j]).Sum();
+        }
+    }
+
+
+    //computing weights
+    var c2 = new double[m];
+
+    Console.WriteLine("Computed weights:");
+
+    for (var i = 0; i < m; i++)
+    {
+        c2[i] = Enumerable.Range(0, m).Select(x => cu[i, x]).Sum() / cu.Cast<double>().Sum();
+        Console.WriteLine("{0:0.0000}", c2[i]);
+    }
+
+    //checking consistence of computed data
+
+    var lambda_max = Enumerable.Range(0, m).Select(x => c2[x] * Enumerable.Range(0, m).Select(y => c[y, x]).Sum()).Sum();
+
+    var ci = (lambda_max - m) / (m - 1);
+
+    var cr = ci / R[m];
+
+    Console.WriteLine("CI factor: {0:0.0000}", ci);
+    Console.WriteLine("CR factor: {0:0.0000}", cr);
+    if (Math.Abs(cr) >= 0.15)
+    {
+        Console.WriteLine("The C matrix is inconsistent!");
+    }
+
+    Console.Write("Continue with next input data? (Y/N)");
+    key = Console.ReadKey().Key;
+    Console.WriteLine();
 }
-
-
-//computing weights
-var c2 = new double[m];
-
-for (var i = 0; i < m; i++)
-{
-    c2[i] = Enumerable.Range(0, m).Select(x => cu[i, x]).Sum() / cu.Cast<double>().Sum();
-    Console.WriteLine("{0:0.0000}", c2[i]);
-}
-
-//checking consistence of computed data
-
-var lambda_max = Enumerable.Range(0, m).Select(x => c2[x] * Enumerable.Range(0, m).Select(y => c[y, x]).Sum()).Sum();
-
-var ci = (lambda_max - m) / (m - 1);
-
-var cr = ci / R[m];
-
-Console.WriteLine("CI factor: {0:0.0000}", ci);
-Console.WriteLine("CR factor: {0:0.0000}", cr);
-if (Math.Abs(cr) >= 0.15)
-{
-    Console.WriteLine("The C matrix is inconsistent!");
-}
-
-Console.ReadKey();
 
 static class Converters
 {
