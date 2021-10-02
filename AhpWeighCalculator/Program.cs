@@ -75,7 +75,7 @@ while(key==ConsoleKey.Y)
         Console.WriteLine("{0:0.0000}", c2[i]);
     }
 
-    //checking consistence of computed data
+    //checking consistence of input data
 
     var lambda_max = Enumerable.Range(0, m).Select(x => c2[x] * Enumerable.Range(0, m).Select(y => c[y, x]).Sum()).Sum();
 
